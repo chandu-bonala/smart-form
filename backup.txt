@@ -1,0 +1,1405 @@
+// BACKUP of c:\Users\HP\OneDrive\Desktop\form\SmartForm\src\screens\auth\LoginScreen.tsx
+
+import React, { useState } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useAuth } from '../../context/AuthContext';
+import { getEmailErrorMessage, getPasswordErrorMessage } from '../../utils/validation';
+import { GoogleAuthButton } from '../../components/GoogleAuthButton';
+
+type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+
+type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+
+const palette = {
+  background: '#F6F5FF',
+  surface: '#FFFFFF',
+  surfaceSoft: '#F1F0FF',
+  primary: '#7657F7',
+  primaryDark: '#31226F',
+  primaryLight: '#ECE9FF',
+  text: '#171429',
+  muted: '#716C87',
+  border: '#DED9FB',
+  input: '#F1F0FF',
+  danger: '#D9576B',
+  dangerSoft: '#FFF0F3',
+  white: '#FFFFFF',
+  shadow: 'rgba(49, 34, 111, 0.14)',
+};
+
+const fontSizes = {
+  xs: 12,
+  sm: 14,
+  base: 16,
+  lg: 18,
+  xl: 24,
+  xxl: 32,
+};
+
+interface AuthInputProps {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  error?: string;
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  secureTextEntry?: boolean;
+  editable?: boolean;
+}
+
+const AuthInput: React.FC<AuthInputProps> = ({
+  label,
+  placeholder,
+  value,
+  onChangeText,
+  error,
+  keyboardType = 'default',
+  autoCapitalize = 'sentences',
+  secureTextEntry = false,
+  editable = true,
+}) => (
+  <View style={styles.inputGroup}>
+    <Text style={styles.inputLabel}>{label}</Text>
+    <View style={[styles.inputShell, error ? styles.inputShellError : null]}>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={palette.muted}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        secureTextEntry={secureTextEntry}
+        editable={editable}
+        style={styles.inputField}
+      />
+    </View>
+    {error ? <Text style={styles.inputErrorText}>{error}</Text> : null}
+  </View>
+);
+
+interface AuthButtonProps {
+  label: string;
+  onPress: () => void;
+  variant?: 'primary' | 'ghost';
+  isLoading?: boolean;
+  disabled?: boolean;
+}
+
+const AuthButton: React.FC<AuthButtonProps> = ({
+  label,
+  onPress,
+  variant = 'primary',
+  isLoading = false,
+  disabled = false,
+}) => {
+  const isDisabled = disabled || isLoading;
+  const isGhost = variant === 'ghost';
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.button,
+        isGhost ? styles.buttonGhost : styles.buttonPrimary,
+        isDisabled ? styles.buttonDisabled : null,
+      ]}
+      onPress={onPress}
+      disabled={isDisabled}
+      activeOpacity={0.88}
+    >
+      {isLoading ? (
+        <ActivityIndicator color={isGhost ? palette.primary : palette.white} size="small" />
+      ) : (
+        <Text style={[styles.buttonText, isGhost ? styles.buttonTextGhost : null]}>{label}</Text>
+      )}
+    </TouchableOpacity>
+  );
+};
+
+export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
+  const { login, isLoading, error, clearError } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  const validateForm = (): boolean => {
+    let isValid = true;
+
+    const emailErr = getEmailErrorMessage(email);
+    if (emailErr) {
+      setEmailError(emailErr);
+      isValid = false;
+    } else {
+      setEmailError('');
+    }
+
+    const passwordErr = getPasswordErrorMessage(password);
+    if (passwordErr) {
+      setPasswordError(passwordErr);
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+
+    return isValid;
+  };
+
+  const handleLogin = async () => {
+    clearError();
+    if (!validateForm()) return;
+
+    try {
+      await login(email, password);
+    } catch (err) {
+      console.error('Login error:', err);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.brandHeader}>
+          <View style={styles.logoMark}>
+            <Text style={styles.logoText}>SF</Text>
+          </View>
+          <View style={styles.brandCopy}>
+            <Text style={styles.brandName}>SmartForm</Text>
+            <Text style={styles.brandLine}>Designed response operations</Text>
+          </View>
+        </View>
+
+        <View style={styles.headingBlock}>
+          <Text style={styles.title}>Welcome back to command center</Text>
+          <Text style={styles.subtitle}>
+            Sign in to manage forms, responses, analytics, and team activity.
+          </Text>
+        </View>
+
+        <View style={styles.card}>
+          {error ? (
+            <View style={styles.errorAlert}>
+              <Text style={styles.errorAlertText}>{error}</Text>
+            </View>
+          ) : null}
+
+          <GoogleAuthButton disabled={isLoading} />
+
+          <AuthInput
+            label="Email address"
+            placeholder="you@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (emailError) setEmailError('');
+            }}
+            error={emailError}
+            editable={!isLoading}
+          />
+
+          <AuthInput
+            label="Password"
+            placeholder="Enter your password"
+            secureTextEntry
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (passwordError) setPasswordError('');
+            }}
+            error={passwordError}
+            editable={!isLoading}
+          />
+
+          <AuthButton
+            label="Sign in"
+            onPress={handleLogin}
+            isLoading={isLoading}
+            disabled={isLoading}
+          />
+
+          <View style={styles.switchRow}>
+            <Text style={styles.switchText}>Need an account?</Text>
+            <TouchableOpacity
+              onPress={() => navigation.replace('Register')}
+              disabled={isLoading}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.switchLink}>Create one</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: palette.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 32,
+  },
+  brandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 34,
+    width: '100%',
+    maxWidth: 520,
+  },
+  logoMark: {
+    width: 54,
+    height: 54,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.primary,
+    marginRight: 12,
+    shadowColor: palette.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+  logoText: {
+    color: palette.white,
+    fontSize: fontSizes.lg,
+    fontWeight: '900',
+  },
+  brandCopy: {
+    flex: 1,
+  },
+  brandName: {
+    color: palette.text,
+    fontSize: fontSizes.lg,
+    fontWeight: '900',
+  },
+  brandLine: {
+    color: palette.muted,
+    fontSize: fontSizes.sm,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  headingBlock: {
+    marginBottom: 22,
+  },
+  title: {
+    color: palette.text,
+    fontSize: fontSizes.xxl,
+    fontWeight: '900',
+    lineHeight: 38,
+  },
+  subtitle: {
+    color: palette.muted,
+    fontSize: fontSizes.base,
+    lineHeight: 24,
+    marginTop: 8,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
+    backgroundColor: palette.surface,
+    borderRadius: 22,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: palette.border,
+    shadowColor: palette.shadow,
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.16,
+    shadowRadius: 26,
+    elevation: 8,
+  },
+  errorAlert: {
+    backgroundColor: palette.dangerSoft,
+    borderWidth: 1,
+    borderColor: '#C4B5FD',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    marginBottom: 16,
+  },
+  errorAlertText: {
+    color: palette.danger,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    color: palette.text,
+    marginBottom: 8,
+  },
+  inputShell: {
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    backgroundColor: palette.input,
+    borderWidth: 1,
+    borderColor: palette.border,
+  },
+  inputShellError: {
+    borderColor: palette.danger,
+    backgroundColor: palette.dangerSoft,
+  },
+  inputField: {
+    paddingVertical: 13,
+    fontSize: fontSizes.base,
+    color: palette.text,
+    borderWidth: 0,
+    outlineStyle: 'none',
+    outlineWidth: 0,
+    outlineColor: 'transparent',
+  },
+  inputErrorText: {
+    color: palette.danger,
+    fontSize: fontSizes.xs,
+    marginTop: 6,
+    fontWeight: '700',
+  },
+  button: {
+    borderRadius: 14,
+    minHeight: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 18,
+    marginTop: 4,
+  },
+  buttonPrimary: {
+    backgroundColor: palette.primary,
+    shadowColor: palette.primaryDark,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.18,
+    shadowRadius: 22,
+    elevation: 5,
+  },
+  buttonGhost: {
+    backgroundColor: palette.surfaceSoft,
+    borderWidth: 1,
+    borderColor: palette.primaryLight,
+  },
+  buttonDisabled: {
+    opacity: 0.65,
+  },
+  buttonText: {
+    fontSize: fontSizes.base,
+    fontWeight: '800',
+    color: palette.white,
+  },
+  buttonTextGhost: {
+    color: palette.primary,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 18,
+  },
+  switchText: {
+    color: palette.muted,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    marginRight: 6,
+  },
+  switchLink: {
+    color: palette.primary,
+    fontSize: fontSizes.sm,
+    fontWeight: '900',
+  },
+});
+
+// BACKUP of c:\Users\HP\OneDrive\Desktop\form\SmartForm\src\screens\auth\RegisterScreen.tsx
+
+import React, { useState } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useAuth } from '../../context/AuthContext';
+import { GoogleAuthButton } from '../../components/GoogleAuthButton';
+import {
+  getNameErrorMessage,
+  getEmailErrorMessage,
+  getPasswordErrorMessage,
+} from '../../utils/validation';
+
+type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+
+type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;
+
+const palette = {
+  background: '#F6F5FF',
+  surface: '#FFFFFF',
+  surfaceSoft: '#F1F0FF',
+  primary: '#7657F7',
+  primaryDark: '#31226F',
+  primaryLight: '#ECE9FF',
+  text: '#171429',
+  muted: '#716C87',
+  border: '#DED9FB',
+  input: '#F1F0FF',
+  success: '#159A8A',
+  successSoft: '#E8FAF7',
+  danger: '#D9576B',
+  dangerSoft: '#FFF0F3',
+  white: '#FFFFFF',
+  shadow: 'rgba(49, 34, 111, 0.14)',
+};
+
+const fontSizes = {
+  xs: 12,
+  sm: 14,
+  base: 16,
+  lg: 18,
+  xl: 24,
+  xxl: 32,
+};
+
+interface AuthInputProps {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  error?: string;
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  secureTextEntry?: boolean;
+  editable?: boolean;
+}
+
+const AuthInput: React.FC<AuthInputProps> = ({
+  label,
+  placeholder,
+  value,
+  onChangeText,
+  error,
+  keyboardType = 'default',
+  autoCapitalize = 'sentences',
+  secureTextEntry = false,
+  editable = true,
+}) => (
+  <View style={styles.inputGroup}>
+    <Text style={styles.inputLabel}>{label}</Text>
+    <View style={[styles.inputShell, error ? styles.inputShellError : null]}>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={palette.muted}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        secureTextEntry={secureTextEntry}
+        editable={editable}
+        style={styles.inputField}
+      />
+    </View>
+    {error ? <Text style={styles.inputErrorText}>{error}</Text> : null}
+  </View>
+);
+
+interface AuthButtonProps {
+  label: string;
+  onPress: () => void;
+  isLoading?: boolean;
+  disabled?: boolean;
+}
+
+const AuthButton: React.FC<AuthButtonProps> = ({
+  label,
+  onPress,
+  isLoading = false,
+  disabled = false,
+}) => {
+  const isDisabled = disabled || isLoading;
+
+  return (
+    <TouchableOpacity
+      style={[styles.button, isDisabled ? styles.buttonDisabled : null]}
+      onPress={onPress}
+      disabled={isDisabled}
+      activeOpacity={0.88}
+    >
+      {isLoading ? (
+        <ActivityIndicator color={palette.white} size="small" />
+      ) : (
+        <Text style={styles.buttonText}>{label}</Text>
+      )}
+    </TouchableOpacity>
+  );
+};
+
+export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
+  const { register, isLoading, error, clearError } = useAuth();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  const validateForm = (): boolean => {
+    let isValid = true;
+
+    const nameErr = getNameErrorMessage(name);
+    if (nameErr) {
+      setNameError(nameErr);
+      isValid = false;
+    } else {
+      setNameError('');
+    }
+
+    const emailErr = getEmailErrorMessage(email);
+    if (emailErr) {
+      setEmailError(emailErr);
+      isValid = false;
+    } else {
+      setEmailError('');
+    }
+
+    const passwordErr = getPasswordErrorMessage(password);
+    if (passwordErr) {
+      setPasswordError(passwordErr);
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      isValid = false;
+    } else {
+      setConfirmPasswordError('');
+    }
+
+    return isValid;
+  };
+
+  const handleRegister = async () => {
+    clearError();
+    if (!validateForm()) return;
+
+    try {
+      await register(name, email, password);
+    } catch (err) {
+      console.error('Register error:', err);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.brandHeader}>
+          <View style={styles.logoMark}>
+            <Text style={styles.logoText}>SF</Text>
+          </View>
+          <View style={styles.brandCopy}>
+            <Text style={styles.brandName}>SmartForm</Text>
+            <Text style={styles.brandLine}>Designed response operations</Text>
+          </View>
+        </View>
+
+        <View style={styles.headingBlock}>
+          <Text style={styles.title}>Create your workspace</Text>
+          <Text style={styles.subtitle}>
+            Set up the operating space for forms, responses, analytics, and publishing.
+          </Text>
+        </View>
+
+        <View style={styles.card}>
+          {error ? (
+            <View style={styles.errorAlert}>
+              <Text style={styles.errorAlertText}>{error}</Text>
+            </View>
+          ) : null}
+
+          <GoogleAuthButton disabled={isLoading} />
+
+          <AuthInput
+            label="Full name"
+            placeholder="John Doe"
+            value={name}
+            onChangeText={(text) => {
+              setName(text);
+              if (nameError) setNameError('');
+            }}
+            error={nameError}
+            editable={!isLoading}
+          />
+
+          <AuthInput
+            label="Email address"
+            placeholder="you@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (emailError) setEmailError('');
+            }}
+            error={emailError}
+            editable={!isLoading}
+          />
+
+          <AuthInput
+            label="Password"
+            placeholder="Create a strong password"
+            secureTextEntry
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (passwordError) setPasswordError('');
+            }}
+            error={passwordError}
+            editable={!isLoading}
+          />
+
+          <AuthInput
+            label="Confirm password"
+            placeholder="Repeat your password"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              if (confirmPasswordError) setConfirmPasswordError('');
+            }}
+            error={confirmPasswordError}
+            editable={!isLoading}
+          />
+
+          <View style={styles.requirements}>
+            <Text style={styles.requirementsTitle}>Password strength</Text>
+            <PasswordRequirement text="8+ characters" met={password.length >= 8} />
+            <PasswordRequirement text="Uppercase letter" met={/[A-Z]/.test(password)} />
+            <PasswordRequirement text="Lowercase letter" met={/[a-z]/.test(password)} />
+            <PasswordRequirement text="Number" met={/[0-9]/.test(password)} />
+          </View>
+
+          <AuthButton
+            label="Create account"
+            onPress={handleRegister}
+            isLoading={isLoading}
+            disabled={isLoading}
+          />
+
+          <View style={styles.switchRow}>
+            <Text style={styles.switchText}>Already registered?</Text>
+            <TouchableOpacity
+              onPress={() => navigation.replace('Login')}
+              disabled={isLoading}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.switchLink}>Sign in</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+interface PasswordRequirementProps {
+  text: string;
+  met: boolean;
+}
+
+const PasswordRequirement: React.FC<PasswordRequirementProps> = ({ text, met }) => (
+  <View style={[styles.requirement, met ? styles.requirementMet : null]}>
+    <Text style={[styles.requirementStatus, met ? styles.requirementStatusMet : null]}>
+      {met ? 'OK' : '--'}
+    </Text>
+    <Text style={[styles.requirementText, met ? styles.requirementTextMet : null]}>{text}</Text>
+  </View>
+);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: palette.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 32,
+  },
+  brandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 28,
+    width: '100%',
+    maxWidth: 520,
+  },
+  logoMark: {
+    width: 54,
+    height: 54,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.primary,
+    marginRight: 12,
+    shadowColor: palette.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+  logoText: {
+    color: palette.white,
+    fontSize: fontSizes.lg,
+    fontWeight: '900',
+  },
+  brandCopy: {
+    flex: 1,
+  },
+  brandName: {
+    color: palette.text,
+    fontSize: fontSizes.lg,
+    fontWeight: '900',
+  },
+  brandLine: {
+    color: palette.muted,
+    fontSize: fontSizes.sm,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  headingBlock: {
+    marginBottom: 20,
+  },
+  title: {
+    color: palette.text,
+    fontSize: fontSizes.xxl,
+    fontWeight: '900',
+    lineHeight: 38,
+  },
+  subtitle: {
+    color: palette.muted,
+    fontSize: fontSizes.base,
+    lineHeight: 24,
+    marginTop: 8,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
+    backgroundColor: palette.surface,
+    borderRadius: 22,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: palette.border,
+    shadowColor: palette.shadow,
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.16,
+    shadowRadius: 26,
+    elevation: 8,
+  },
+  errorAlert: {
+    backgroundColor: palette.dangerSoft,
+    borderWidth: 1,
+    borderColor: '#C4B5FD',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    marginBottom: 16,
+  },
+  errorAlertText: {
+    color: palette.danger,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+  },
+  inputGroup: {
+    marginBottom: 14,
+  },
+  inputLabel: {
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    color: palette.text,
+    marginBottom: 8,
+  },
+  inputShell: {
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    backgroundColor: palette.input,
+    borderWidth: 1,
+    borderColor: palette.border,
+  },
+  inputShellError: {
+    borderColor: palette.danger,
+    backgroundColor: palette.dangerSoft,
+  },
+  inputField: {
+    paddingVertical: 13,
+    fontSize: fontSizes.base,
+    color: palette.text,
+    borderWidth: 0,
+    outlineStyle: 'none',
+    outlineWidth: 0,
+    outlineColor: 'transparent',
+  },
+  inputErrorText: {
+    color: palette.danger,
+    fontSize: fontSizes.xs,
+    marginTop: 6,
+    fontWeight: '700',
+  },
+  requirements: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    backgroundColor: palette.surfaceSoft,
+    borderWidth: 1,
+    borderColor: palette.primaryLight,
+    borderRadius: 16,
+    padding: 12,
+    marginTop: 2,
+    marginBottom: 18,
+  },
+  requirementsTitle: {
+    width: '100%',
+    fontSize: fontSizes.sm,
+    fontWeight: '900',
+    color: palette.text,
+    marginBottom: 10,
+  },
+  requirement: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 999,
+    backgroundColor: palette.white,
+    borderWidth: 1,
+    borderColor: palette.border,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  requirementMet: {
+    backgroundColor: palette.successSoft,
+    borderColor: '#99F6E4',
+  },
+  requirementStatus: {
+    color: palette.muted,
+    fontSize: 10,
+    fontWeight: '900',
+    marginRight: 6,
+  },
+  requirementStatusMet: {
+    color: palette.success,
+  },
+  requirementText: {
+    color: palette.muted,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+  },
+  requirementTextMet: {
+    color: palette.success,
+  },
+  button: {
+    borderRadius: 14,
+    minHeight: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 18,
+    backgroundColor: palette.primary,
+    shadowColor: palette.primaryDark,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.18,
+    shadowRadius: 22,
+    elevation: 5,
+  },
+  buttonDisabled: {
+    opacity: 0.65,
+  },
+  buttonText: {
+    fontSize: fontSizes.base,
+    fontWeight: '800',
+    color: palette.white,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 18,
+  },
+  switchText: {
+    color: palette.muted,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    marginRight: 6,
+  },
+  switchLink: {
+    color: palette.primary,
+    fontSize: fontSizes.sm,
+    fontWeight: '900',
+  },
+});
+
+// BACKUP of c:\Users\HP\OneDrive\Desktop\form\SmartForm\src\screens\app\DashboardScreen.tsx
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { analyticsService, AnalyticsDashboard } from '../../api/analytics-service';
+import { getErrorMessage } from '../../api/client';
+import { formsService, FormItem } from '../../api/forms-service';
+import { TrendLineChart } from '../../components/TrendLineChart';
+import { useAuth } from '../../context/AuthContext';
+import { AppStackParamList } from '../../navigation/NavigationTypes';
+
+type DashboardScreenProps = NativeStackScreenProps<AppStackParamList, 'Dashboard'>;
+type Tone = 'navy' | 'teal' | 'amber' | 'rose';
+
+const ui = {
+  page: '#F6F5FF',
+  ink: '#171429',
+  muted: '#716C87',
+  faint: '#A09BB6',
+  line: '#DED9FB',
+  surface: '#FFFFFF',
+  wash: '#F1F0FF',
+  navy: '#31226F',
+  teal: '#7657F7',
+  tealSoft: '#ECE9FF',
+  amber: '#D88B20',
+  amberSoft: '#FFF6E6',
+  rose: '#D9576B',
+  roseSoft: '#FFF0F3',
+  green: '#159A8A',
+  greenSoft: '#E8FAF7',
+};
+
+const toneColors: Record<Tone, { color: string; soft: string }> = {
+  navy: { color: ui.navy, soft: '#E8F0FF' },
+  teal: { color: ui.teal, soft: ui.tealSoft },
+  amber: { color: ui.amber, soft: ui.amberSoft },
+  rose: { color: ui.rose, soft: ui.roseSoft },
+};
+
+const AUTO_REFRESH_INTERVAL_MS = 10000;
+
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
+  const { user, logout, isLoading } = useAuth();
+  const [analytics, setAnalytics] = useState<AnalyticsDashboard | null>(null);
+  const [forms, setForms] = useState<FormItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadDashboard = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      setError(null);
+      const [dashboard, formResponse] = await Promise.all([
+        analyticsService.getDashboard(),
+        formsService.list(),
+      ]);
+      setAnalytics(dashboard);
+      setForms(formResponse.items);
+    } catch (err)      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  useEffect(() => {
+    const refreshTimer = setInterval(loadDashboard, AUTO_REFRESH_INTERVAL_MS);
+    return () => clearInterval(refreshTimer);
+  }, [loadDashboard]);
+
+  const recentForms = forms.slice(0, 5);
+  const publishedForms = forms.filter((form) => form.status.toLowerCase() === 'published').length;
+  const draftForms = forms.filter((form) => form.status.toLowerCase() === 'draft').length;
+  const hiddenForms = forms.filter((form) => form.is_hidden).length;
+  const totalResponses = analytics?.total_responses ?? 0;
+  const completionRate = Math.min(100, Math.round(analytics?.completion_rate ?? 0));
+  const avgTime = Math.round(analytics?.average_completion_time ?? 0);
+  const trendRows = useMemo(() => {
+    const daily = analytics?.daily_responses ?? [];
+    const monthly = analytics?.monthly_responses ?? [];
+    return (daily.length ? daily : monthly).slice(-10);
+  }, [analytics]);
+  const maxTrend = Math.max(1, ...trendRows.map((item) => item.count));
+  const firstName = user?.name?.split(' ')[0] ?? 'Creator';
+  const initials = user?.name
+    ? user.name.split(' ').map((part) => part.charAt(0)).join('').slice(0, 2).toUpperCase()
+    : 'SF';
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadDashboard();
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.centered}>
+          <ActivityIndicator color={ui.teal} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[ui.teal]} />}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.shell}>
+          <View style={styles.topBar}>
+            <View style={styles.brandRow}>
+              <View style={styles.logo}>
+                <Text style={styles.logoText}>SF</Text>
+              </View>
+              <View>
+                <Text style={styles.overline}>SmartForm studio</Text>
+                <Text style={styles.pageTitle}>Good to see you, {firstName}</Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.avatarButton} activeOpacity={0.85} onPress={() => navigation.navigate('Profile')}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {error ? <Message title="Live data paused" text={error} /> : null}
+
+          <View style={styles.commandPanel}>
+            <View style={styles.commandCopy}>
+              <Text style={styles.commandLabel}>Today&apos;s workspace</Text>
+              <Text style={styles.commandTitle}>Build forms, publish faster, and read response health without hunting.</Text>
+              <Text style={styles.commandText}>
+                The dashboard now prioritizes the next useful action and keeps performance signals close to the forms that need attention.
+              </Text>
+            </View>
+            <View style={styles.commandActions}>
+              <TouchableOpacity style={styles.primaryButton} activeOpacity={0.88} onPress={() => navigation.navigate('FormCreate')}>
+                <Text style={styles.primaryButtonText}>Create form</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.darkButton} activeOpacity={0.88} onPress={() => navigation.navigate('FormsList')}>
+                <Text style={styles.darkButtonText}>Open library</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.kpiGrid}>
+            <Metric label="Forms" value={forms.length.toString()} helper={`${publishedForms} live, ${draftForms} drafts`} tone="navy" loading={loading} />
+            <Metric label="Responses" value={totalResponses.toString()} helper={`${avgTime}s average finish`} tone="teal" loading={loading} />
+            <Metric label="Completion" value={`${completionRate}%`} helper={completionRate >= 70 ? 'Healthy respondent flow' : 'Needs form tuning'} tone={completionRate >= 70 ? 'teal' : 'amber'} loading={loading} />
+            <Metric label="Hidden" value={hiddenForms.toString()} helper="Archived or private forms" tone="rose" loading={loading} />
+          </View>
+
+          <View style={styles.workspaceGrid}>
+            <View style={styles.primaryColumn}>
+              <SectionHeader label="Response momentum" title="Collection trend" action="Analytics" onPress={() => navigation.navigate('Analytics')} />
+              <View style={styles.panel}>
+                {loading ? (
+                  <LoadingBlock />
+                ) : trendRows.length ? (
+                  <TrendLineChart rows={trendRows} maxValue={maxTrend} />
+                ) : (
+                  <EmptyState title="No submissions yet" text="Publish a form and share the public link to start seeing response velocity." />
+                )}
+              </View>
+
+              <SectionHeader label="Form pipeline" title="Recent work" action="All forms" onPress={() => navigation.navigate('FormsList')} />
+              <View style={styles.panel}>
+                {loading ? <LoadingBlock /> : null}
+                {!loading && recentForms.length === 0 ? (
+                  <EmptyState title="Your library is empty" text="Create the first form, add questions, then publish when it is ready." />
+                ) : null}
+                {recentForms.map((form) => (
+                  <TouchableOpacity key={form.id} style={styles.formRow} activeOpacity={0.86} onPress={() => navigation.navigate('FormDetail', { formId: form.id })}>
+                    <View style={styles.formGlyph}>
+                      <Text style={styles.formGlyphText}>{form.title.charAt(0).toUpperCase()}</Text>
+                    </View>
+                    <View style={styles.formCopy}>
+                      <Text style={styles.formTitle} numberOfLines={1}>{form.title}</Text>
+                      <Text style={styles.formMeta} numberOfLines={1}>{form.form_slug} | {form.questions?.length ?? 0} questions | {form.collect_email ? 'email on' : 'email off'}</Text>
+                    </View>
+                    <StatusPill status={form.status} hidden={form.is_hidden} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.sideColumn}>
+              <View style={styles.panel}>
+                <Text style={styles.sectionLabel}>Operating read</Text>
+                <Text style={styles.sectionTitle}>Workspace health</Text>
+                <ProgressLine label="Published coverage" value={forms.length ? Math.round((publishedForms / forms.length) * 100) : 0} tone="teal" />
+                <ProgressLine label="Completion quality" value={completionRate} tone={completionRate >= 70 ? 'teal' : 'amber'} />
+                <InfoLine label="Draft backlog" value={`${draftForms} forms`} />
+                <InfoLine label="Average finish" value={`${avgTime}s`} />
+              </View>
+
+              <View style={styles.panel}>
+                <Text style={styles.sectionLabel}>Top forms</Text>
+                <Text style={styles.sectionTitle}>Strongest collectors</Text>
+                {(analytics?.top_forms ?? []).slice(0, 4).length ? (
+                  (analytics?.top_forms ?? []).slice(0, 4).map((item, index) => (
+                    <RankLine key={`${item.label}-${index}`} rank={index + 1} label={item.label} value={item.value} max={Math.max(1, ...(analytics?.top_forms ?? []).map((row) => row.value))} />
+                  ))
+                ) : (
+                  <EmptyState title="No ranking yet" text="Response leaders appear after forms receive submissions." compact />
+                )}
+              </View>
+
+              <View style={styles.panel}>
+                <Text style={styles.sectionLabel}>Account</Text>
+                <Text style={styles.sectionTitle}>Signed in</Text>
+                <InfoLine label="Role" value={user.role.toUpperCase()} />
+                <InfoLine label="Email" value={user.email} />
+                <InfoLine label="Verification" value={user.is_verified ? 'Verified' : 'Pending'} />
+                <TouchableOpacity style={styles.logoutButton} activeOpacity={0.85} disabled={isLoading} onPress={logout}>
+                  {isLoading ? <ActivityIndicator color={ui.rose} /> : <Text style={styles.logoutText}>Logout</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const Metric: React.FC<{ label: string; value: string; helper: string; tone: Tone; loading: boolean }> = ({ label, value, helper, tone, loading }) => {
+  const colors = toneColors[tone];
+  return (
+    <View style={styles.metricCard}>
+      <View style={[styles.metricMark, { backgroundColor: colors.soft }]}>
+        <View style={[styles.metricMarkInner, { backgroundColor: colors.color }]} />
+      </View>
+      {loading ? <ActivityIndicator color={colors.color} /> : <Text style={styles.metricValue}>{value}</Text>}
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={styles.metricHelper}>{helper}</Text>
+    </View>
+  );
+};
+
+const SectionHeader: React.FC<{ label: string; title: string; action: string; onPress: () => void }> = ({ label, title, action, onPress }) => (
+  <View style={styles.sectionHeader}>
+    <View>
+      <Text style={styles.sectionLabel}>{label}</Text>
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+    <TouchableOpacity style={styles.headerAction} activeOpacity={0.84} onPress={onPress}>
+      <Text style={styles.headerActionText}>{action}</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const Message: React.FC<{ title: string; text: string }> = ({ title, text }) => (
+  <View style={styles.message}>
+    <Text style={styles.messageTitle}>{title}</Text>
+    <Text style={styles.messageText}>{text}</Text>
+  </View>
+);
+
+const LoadingBlock = () => (
+  <View style={styles.loadingBlock}>
+    <ActivityIndicator color={ui.teal} />
+  </View>
+);
+
+const EmptyState: React.FC<{ title: string; text: string; compact?: boolean }> = ({ title, text, compact }) => (
+  <View style={[styles.emptyState, compact ? styles.emptyCompact : null]}>
+    <Text style={styles.emptyTitle}>{title}</Text>
+    <Text style={styles.emptyText}>{text}</Text>
+  </View>
+);
+
+const StatusPill: React.FC<{ status: string; hidden: boolean }> = ({ status, hidden }) => {
+  const published = status.toLowerCase() === 'published';
+  const color = hidden ? ui.navy : published ? ui.green : ui.amber;
+  const background = hidden ? '#DBEAFE' : published ? ui.greenSoft : ui.amberSoft;
+  return (
+    <View style={[styles.statusPill, { backgroundColor: background }]}>
+      <Text style={[styles.statusText, { color }]}>{hidden ? 'Hidden' : published ? 'Live' : 'Draft'}</Text>
+    </View>
+  );
+};
+
+const ProgressLine: React.FC<{ label: string; value: number; tone: Tone }> = ({ label, value, tone }) => {
+  const colors = toneColors[tone];
+  return (
+    <View style={styles.progressLine}>
+      <View style={styles.progressTop}>
+        <Text style={styles.progressLabel}>{label}</Text>
+        <Text style={[styles.progressValue, { color: colors.color }]}>{value}%</Text>
+      </View>
+      <View style={styles.progressTrack}>
+        <View style={[styles.progressFill, { width: `${Math.min(100, value)}%`, backgroundColor: colors.color }]} />
+      </View>
+    </View>
+  );
+};
+
+const InfoLine: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <View style={styles.infoLine}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
+  </View>
+);
+
+const RankLine: React.FC<{ rank: number; label: string; value: number; max: number }> = ({ rank, label, value, max }) => (
+  <View style={styles.rankLine}>
+    <View style={styles.rankBadge}>
+      <Text style={styles.rankBadgeText}>{rank}</Text>
+    </View>
+    <View style={styles.rankBody}>
+      <View style={styles.rankTop}>
+        <Text style={styles.rankLabel} numberOfLines={1}>{label}</Text>
+        <Text style={styles.rankValue}>{value}</Text>
+      </View>
+      <View style={styles.rankTrack}>
+        <View style={[styles.rankFill, { width: `${Math.max(5, (value / max) * 100)}%` }]} />
+      </View>
+    </View>
+  </View>
+);
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: ui.page },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 34 },
+  shell: { width: '100%', maxWidth: 1180, alignSelf: 'center' },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  logo: { width: 44, height: 44, borderRadius: 8, backgroundColor: ui.ink, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  logoText: { color: '#FFFFFF', fontSize: 14, fontWeight: '900' },
+  overline: { color: ui.teal, fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
+  pageTitle: { color: ui.ink, fontSize: 26, lineHeight: 31, fontWeight: '900', marginTop: 2 },
+  avatarButton: { width: 44, height: 44, borderRadius: 8, backgroundColor: ui.surface, borderWidth: 1, borderColor: ui.line, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: ui.ink, fontWeight: '900' },
+  message: { backgroundColor: ui.roseSoft, borderWidth: 1, borderColor: '#F4C7D0', borderRadius: 8, padding: 12, marginBottom: 14 },
+  messageTitle: { color: ui.rose, fontWeight: '900', marginBottom: 3 },
+  messageText: { color: ui.rose, fontSize: 14, lineHeight: 20 },
+  commandPanel: { backgroundColor: ui.ink, borderRadius: 8, padding: 20, marginBottom: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  commandCopy: { flex: 1, marginRight: 18 },
+  commandLabel: { color: '#EDE9FE', fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
+  commandTitle: { color: '#FFFFFF', fontSize: 28, lineHeight: 35, fontWeight: '900', marginTop: 8 },
+  commandText: { color: '#EDE9FE', fontSize: 14, lineHeight: 21, marginTop: 8 },
+  commandActions: { width: 210 },
+  primaryButton: { minHeight: 46, borderRadius: 8, backgroundColor: ui.teal, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  primaryButtonText: { color: '#FFFFFF', fontWeight: '900' },
+  darkButton: { minHeight: 46, borderRadius: 8, borderWidth: 1, borderColor: '#AFA3FF', alignItems: 'center', justifyContent: 'center' },
+  darkButtonText: { color: '#FFFFFF', fontWeight: '900' },
+  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', marginRight: -10, marginBottom: 4 },
+  metricCard: { flexGrow: 1, flexBasis: 220, minHeight: 138, backgroundColor: ui.surface, borderRadius: 8, borderWidth: 1, borderColor: ui.line, padding: 15, marginRight: 10, marginBottom: 10, justifyContent: 'space-between' },
+  metricMark: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  metricMarkInner: { width: 11, height: 11, borderRadius: 6 },
+  metricValue: { color: ui.ink, fontSize: 34, lineHeight: 38, fontWeight: '900' },
+  metricLabel: { color: ui.ink, fontSize: 14, fontWeight: '900' },
+  metricHelper: { color: ui.muted, fontSize: 12, fontWeight: '700' },
+  workspaceGrid: { flexDirection: 'row', alignItems: 'flex-start' },
+  primaryColumn: { flex: 1.45, marginRight: 14 },
+  sideColumn: { flex: 1 },
+  sectionHeader: { backgroundColor: ui.surface, borderWidth: 1, borderColor: ui.line, borderRadius: 8, padding: 14, marginBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionLabel: { color: ui.teal, fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
+  sectionTitle: { color: ui.ink, fontSize: 18, fontWeight: '900', marginTop: 2 },
+  headerAction: { minHeight: 34, borderRadius: 8, backgroundColor: ui.tealSoft, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  headerActionText: { color: ui.teal, fontSize: 12, fontWeight: '900' },
+  panel: { backgroundColor: ui.surface, borderWidth: 1, borderColor: ui.line, borderRadius: 8, padding: 15, marginBottom: 14 },
+  loadingBlock: { minHeight: 120, alignItems: 'center', justifyContent: 'center' },
+  emptyState: { backgroundColor: ui.wash, borderWidth: 1, borderColor: ui.line, borderRadius: 8, padding: 14 },
+  emptyCompact: { marginTop: 12 },
+  emptyTitle: { color: ui.ink, fontWeight: '900', marginBottom: 4 },
+  emptyText: { color: ui.muted, fontSize: 14, lineHeight: 20 },
+  formRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderTopWidth: 1, borderTopColor: ui.line },
+  formGlyph: { width: 38, height: 38, borderRadius: 8, backgroundColor: ui.tealSoft, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  formGlyphText: { color: ui.teal, fontWeight: '900' },
+  formCopy: { flex: 1, marginRight: 10 },
+  formTitle: { color: ui.ink, fontSize: 16, fontWeight: '900' },
+  formMeta: { color: ui.muted, fontSize: 12, fontWeight: '700', marginTop: 3 },
+  statusPill: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+  statusText: { fontSize: 12, fontWeight: '900' },
+  progressLine: { marginTop: 15 },
+  progressTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  progressLabel: { color: ui.ink, fontSize: 14, fontWeight: '900' },
+  progressValue: { fontSize: 14, fontWeight: '900' },
+  progressTrack: { height: 9, borderRadius: 8, backgroundColor: ui.wash, overflow: 'hidden' },
+  progressFill: { height: 9, borderRadius: 8 },
+  infoLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: ui.line, paddingTop: 12, marginTop: 12 },
+  infoLabel: { color: ui.muted, fontSize: 14, fontWeight: '800' },
+  infoValue: { flex: 1, color: ui.ink, fontSize: 14, fontWeight: '900', textAlign: 'right', marginLeft: 10 },
+  rankLine: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: ui.line, paddingTop: 12, marginTop: 12 },
+  rankBadge: { width: 30, height: 30, borderRadius: 8, backgroundColor: ui.tealSoft, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  rankBadgeText: { color: ui.teal, fontWeight: '900', fontSize: 12 },
+  rankBody: { flex: 1 },
+  rankTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 },
+  rankLabel: { flex: 1, color: ui.ink, fontWeight: '900', marginRight: 8 },
+  rankValue: { color: ui.teal, fontWeight: '900' },
+  rankTrack: { height: 7, borderRadius: 8, backgroundColor: ui.wash, overflow: 'hidden' },
+  rankFill: { height: 7, borderRadius: 8, backgroundColor: ui.green },
+  logoutButton: { minHeight: 42, borderRadius: 8, borderWidth: 1, borderColor: '#F4C7D0', backgroundColor: ui.roseSoft, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+  logoutText: { color: ui.rose, fontWeight: '900' },
+});

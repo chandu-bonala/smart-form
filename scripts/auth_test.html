@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartForm Auth Tester</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Arial, sans-serif;
+        background: #f6f5ff;
+        color: #171429;
+      }
+z
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      main {
+        width: 100%;
+        max-width: 980px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: #7657f7;
+        color: #ffffff;
+        font-weight: 900;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      p {
+        color: #716c87;
+        line-height: 1.5;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      section {
+        background: #ffffff;
+        border: 1px solid #ded9fb;
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 18px 26px rgba(49, 34, 111, 0.12);
+      }
+
+      label {
+        display: block;
+        margin-top: 12px;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 6px;
+        border: 1px solid #ded9fb;
+        border-radius: 10px;
+        background: #f1f0ff;
+        color: #171429;
+        padding: 12px;
+        font-size: 15px;
+      }
+
+      button {
+        width: 100%;
+        min-height: 46px;
+        margin-top: 14px;
+        border: 0;
+        border-radius: 10px;
+        background: #7657f7;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      button.google {
+        border: 1px solid #ded9fb;
+        background: #ffffff;
+        color: #171429;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        min-height: 160px;
+        margin: 16px 0 0;
+        border: 1px solid #ded9fb;
+        border-radius: 12px;
+        background: #171429;
+        color: #ffffff;
+        padding: 14px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .status {
+        margin: 16px 0 0;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 900;
+        background: #f1f0ff;
+        border: 1px solid #ded9fb;
+        color: #171429;
+      }
+
+      .status.success {
+        background: #e8faf7;
+        border-color: #99f6e4;
+        color: #159a8a;
+      }
+
+      .success-banner {
+        margin: 16px 0 0;
+        border-radius: 12px;
+        padding: 16px;
+        background: linear-gradient(135deg, #e8faf7 0%, #f0fff8 100%);
+        border: 1px solid #99f6e4;
+        color: #0f766e;
+        font-size: 18px;
+        font-weight: 900;
+        box-shadow: 0 12px 24px rgba(21, 154, 138, 0.12);
+      }
+
+      .status.error {
+        background: #fff0f3;
+        border-color: #fecdd3;
+        color: #d9576b;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="logo">SF</div>
+        <div>
+          <h1>SmartForm Auth Tester</h1>
+          <p>Tests register, login, Google register, and Google login against your local backend.</p>
+        </div>
+      </header>
+
+      <div class="grid">
+        <section>
+          <h2>Register</h2>
+          <label for="registerName">Name</label>
+          <input id="registerName" autocomplete="name" placeholder="Your name" />
+          <label for="registerEmail">Email</label>
+          <input id="registerEmail" autocomplete="email" placeholder="you@example.com" />
+          <label for="registerPassword">Password</label>
+          <input id="registerPassword" autocomplete="new-password" type="password" placeholder="Password" />
+          <button id="registerButton">Test Register</button>
+          <button class="google" id="googleRegisterButton">Register with Google</button>
+        </section>
+
+        <section>
+          <h2>Login</h2>
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" autocomplete="email" placeholder="you@example.com" />
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" autocomplete="current-password" type="password" placeholder="Password" />
+          <button id="loginButton">Test Login</button>
+          <button class="google" id="googleLoginButton">Login with Google</button>
+        </section>
+
+        <section>
+          <h2>Backend Google Flow</h2>
+          <p>The backend uses one endpoint for Google. New Google emails are registered; existing Google emails are logged in.</p>
+        </section>
+      </div>
+
+      <div id="dashboard" style="display: none; margin-top: 16px;">
+        <section>
+          <h2>Dashboard</h2>
+          <p id="dashboardMessage">You are successfully registered.</p>
+          <div id="successBanner" class="success-banner" style="display: none;"></div>
+          <button id="backButton">Back to tester</button>
+        </section>
+      </div>
+
+      <pre id="result">Loading config...</pre>
+      <div class="status" id="statusText">Waiting for a test...</div>
+    </main>
+
+    <script>
+      const resultBox = document.getElementById("result");
+      const statusText = document.getElementById("statusText");
+      let config = null;
+
+      const show = (label, value, type = "info") => {
+        resultBox.textContent = `${label}\n\n${typeof value === "string" ? value : JSON.stringify(value, null, 2)}`;
+        statusText.textContent = label;
+        statusText.className = `status ${type}`;
+      };
+
+      const requestJson = async (path, body) => {
+        const apiBaseUrl = config.apiBaseUrl || "http://localhost:8080/api/v1";
+        const response = await fetch(`${apiBaseUrl}${path}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const text = await response.text();
+        let data = text;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = text;
+        }
+
+        return { ok: response.ok, status: response.status, data };
+      };
+
+      const copyRegisterToLogin = () => {
+        document.getElementById("loginEmail").value = document.getElementById("registerEmail").value;
+        document.getElementById("loginPassword").value = document.getElementById("registerPassword").value;
+      };
+
+      document.getElementById("registerButton").addEventListener("click", async () => {
+        copyRegisterToLogin();
+        show("Register running...", "");
+        const response = await requestJson("/auth/register", {
+          name: document.getElementById("registerName").value,
+          email: document.getElementById("registerEmail").value,
+          password: document.getElementById("registerPassword").value,
+        });
+        show(response.ok ? "Register working" : "Register failed", response, response.ok ? "success" : "error");
+        if (response.ok) {
+          const msg = "Registration successful — welcome!";
+          const dashboard = document.getElementById("dashboard");
+          const grid = document.querySelector(".grid");
+          const resultEl = document.getElementById("result");
+          const statusEl = document.getElementById("statusText");
+          const successBanner = document.getElementById("successBanner");
+          document.getElementById("dashboardMessage").textContent = msg;
+          if (successBanner) {
+            successBanner.textContent = msg;
+            successBanner.style.display = "block";
+          }
+          if (grid) grid.style.display = "none";
+          if (resultEl) resultEl.style.display = "block";
+          if (statusEl) statusEl.style.display = "block";
+          dashboard.style.display = "block";
+        }
+      });
+
+      document.getElementById("loginButton").addEventListener("click", async () => {
+        show("Login running...", "");
+        const response = await requestJson("/auth/login", {
+          email: document.getElementById("loginEmail").value,
+          password: document.getElementById("loginPassword").value,
+        });
+        show(response.ok ? "Login working" : "Login failed", response, response.ok ? "success" : "error");
+        if (response.ok) {
+          const dashboard = document.getElementById("dashboard");
+          const successBanner = document.getElementById("successBanner");
+          const msg = "Login successful — you are authenticated.";
+          document.getElementById("dashboardMessage").textContent = msg;
+          if (successBanner) {
+            successBanner.textContent = msg;
+            successBanner.style.display = "block";
+          }
+          if (dashboard) dashboard.style.display = "block";
+        }
+      });
+
+      const startGoogleFlow = (mode) => {
+        if (!config.googleClientId) {
+          show("Google config missing", config);
+          return;
+        }
+
+        const state = crypto.randomUUID();
+        const nonce = crypto.randomUUID();
+        sessionStorage.setItem("smartform_auth_test_google_state", state);
+        sessionStorage.setItem("smartform_auth_test_google_mode", mode);
+
+        const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+        authUrl.searchParams.set("client_id", config.googleClientId);
+        const currentOrigin = window.location.origin;
+        const redirectUri = `${currentOrigin}/`;
+        authUrl.searchParams.set("redirect_uri", redirectUri);
+        authUrl.searchParams.set("response_type", "id_token");
+        authUrl.searchParams.set("scope", "openid profile email");
+        authUrl.searchParams.set("state", state);
+        authUrl.searchParams.set("nonce", nonce);
+        authUrl.searchParams.set("prompt", "select_account");
+        window.location.assign(authUrl.toString());
+      };
+
+      document.getElementById("googleRegisterButton").addEventListener("click", () => {
+        startGoogleFlow("register");
+      });
+
+      document.getElementById("googleLoginButton").addEventListener("click", () => {
+        startGoogleFlow("login");
+      });
+
+      document.getElementById("backButton").addEventListener("click", () => {
+        const dashboard = document.getElementById("dashboard");
+        const grid = document.querySelector(".grid");
+        const resultEl = document.getElementById("result");
+        const statusEl = document.getElementById("statusText");
+        const successBanner = document.getElementById("successBanner");
+        if (dashboard) dashboard.style.display = "none";
+        if (grid) grid.style.display = "grid";
+        if (resultEl) resultEl.style.display = "block";
+        if (statusEl) statusEl.style.display = "block";
+        if (successBanner) successBanner.style.display = "none";
+      });
+
+      const finishGoogleLogin = async () => {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        const idToken = params.get("id_token");
+        if (!idToken) return false;
+
+        const expectedState = sessionStorage.getItem("smartform_auth_test_google_state");
+        const returnedState = params.get("state");
+        window.history.replaceState(null, document.title, "/");
+
+        if (!expectedState || returnedState !== expectedState) {
+          show("Google failed", "State mismatch. The OAuth response was not accepted.", "error");
+          return true;
+        }
+
+        sessionStorage.removeItem("smartform_auth_test_google_state");
+        const mode = sessionStorage.getItem("smartform_auth_test_google_mode") || "login";
+        sessionStorage.removeItem("smartform_auth_test_google_mode");
+        show(`Google ${mode} token received, testing backend...`, "");
+        const response = await requestJson("/auth/google", { id_token: idToken });
+        show(
+          response.ok ? `Google ${mode} working` : `Google ${mode} backend failed`,
+          response,
+          response.ok ? "success" : "error"
+        );
+        if (response.ok) {
+          const dashboard = document.getElementById("dashboard");
+          const successBanner = document.getElementById("successBanner");
+          const msg = `Google ${mode} successful — your account is ready.`;
+          document.getElementById("dashboardMessage").textContent = msg;
+          if (successBanner) {
+            successBanner.textContent = msg;
+            successBanner.style.display = "block";
+          }
+          if (dashboard) dashboard.style.display = "block";
+        }
+        return true;
+      };
+
+      const init = async () => {
+        const response = await fetch("/config.json");
+        config = await response.json();
+        const completedGoogle = await finishGoogleLogin();
+        if (!completedGoogle) {
+          show("Ready", config);
+        }
+      };
+
+      init().catch((error) => show("Tester failed", error.message || String(error)));
+    </script>
+  </body>
+</html>

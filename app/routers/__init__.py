@@ -1,0 +1,33 @@
+from app.routers import (
+    ai,
+    admin,
+    analytics,
+    auth,
+    conditional_rules,
+    export,
+    forms,
+    question_branches,
+    public_forms,
+    questions,
+    response_search,
+    responses,
+    uploads,
+    users,
+)
+
+__all__ = [
+    "ai",
+    "admin",
+    "analytics",
+    "auth",
+    "conditional_rules",
+    "export",
+    "forms",
+    "question_branches",
+    "public_forms",
+    "questions",
+    "response_search",
+    "responses",
+    "uploads",
+    "users",
+]

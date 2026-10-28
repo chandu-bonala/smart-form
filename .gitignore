@@ -1,0 +1,24 @@
+# Node
+node_modules/
+SmartForm/node_modules/
+
+# Expo
+.expo/
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Environment
+.env
+
+# Runtime uploads belong in persistent/object storage, not Git.
+app/uploads/*
+!app/uploads/.gitkeep
+
+# VS Code
+.vscode/
+
+# Logs
+*.log

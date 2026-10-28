@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail OTP Verification Tes t</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .status-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .status-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .status-success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #388e3c;
+        }
+
+        .status-error {
+            background: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .status-warning {
+            background: #fff3e0;
+            color: #f57c00;
+            border-left: 4px solid #f57c00;
+        }
+
+        .log-box {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .log-time {
+            color: #999;
+            font-weight: 600;
+        }
+
+        .log-success {
+            color: #388e3c;
+        }
+
+        .log-error {
+            color: #d32f2f;
+        }
+
+        .log-info {
+            color: #1976d2;
+        }
+
+        .config-display {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .config-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .config-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .config-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .config-value {
+            color: #999;
+            word-break: break-all;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timer {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .note {
+            background: #fffacd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 30px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Gmail OTP Verification Test</h1>
+
+        <!-- Configuration Display -->
+        <div class="section">
+            <div class="section-title">Configuration Status</div>
+            <div class="config-display">
+                <div class="config-item">
+                    <div class="config-label">Backend URL:</div>
+                    <div class="config-value" id="backendUrl">http://127.0.0.1:8080</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">SMTP Host:</div>
+                    <div class="config-value">smtp.gmail.com (Port 587)</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Sender Email:</div>
+                    <div class="config-value">smartformverify@gmail.com</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">Connection Status:</div>
+                    <div class="config-value" id="connStatus">Checking...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Register/Login -->
+        <div class="section">
+            <div class="section-title">Step 1: Create Test Account</div>
+            <div class="note">
+                ℹ️ Email pre-filled: <strong>mithinchandubonala@gmail.com</strong> - Just add password and register!
+            </div>
+            <div class="form-group">
+                <label for="email">Test Email Address:</label>
+                <input type="email" id="email" placeholder="your-email@gmail.com" value="mithinchandubonala@gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password" value="Test@123456">
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="registerAccount()">
+                    <span id="regBtnText">Register Account</span>
+                </button>
+                <button class="btn-secondary" onclick="loginAccount()">
+                    <span id="loginBtnText">Login</span>
+                </button>
+            </div>
+            <div id="registerStatus" class="status-box hidden"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Step 2: Request OTP -->
+        <div class="section">
+            <div class="section-title">Step 2: Request OTP Code</div>
+            <div class="note">
+                ℹ️ Send verification code to the email address above. Check your Gmail inbox!
+            </div>
+            <button class="btn-primary" onclick="sendOtp()" style="width: 100%; margin-bottom: 15px;">
+                <span id="otpBtnText">Send OTP Code</span>
+            </button>
+            <div id="otpStatus" class="status-box hidden"></div>
+            <div id="otpTimer" class="hidden" style="text-align: center; font-size: 16px; margin-top: 15px;">
+                Code expires in: <span class="timer" id="countdown">10:00</span>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Step 3: Verify OTP -->
+        <div class="section">
+            <div class="section-title">Step 3: Enter OTP Code</div>
+            <div class="note">
+                ℹ️ Enter the 6-digit code sent to your email
+            </div>
+            <div class="form-group">
+                <label for="otpCode">OTP Code:</label>
+                <input type="text" id="otpCode" placeholder="000000" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+            <button class="btn-primary" onclick="verifyOtp()" style="width: 100%; margin-bottom: 15px;">
+                <span id="verifyBtnText">Verify OTP</span>
+            </button>
+            <div id="verifyStatus" class="status-box hidden"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Debug Logs -->
+        <div class="section">
+            <div class="section-title">Debug Logs</div>
+            <div class="button-group">
+                <button class="btn-secondary" onclick="clearLogs()">Clear Logs</button>
+                <button class="btn-secondary" onclick="copyLogs()">Copy Logs</button>
+            </div>
+            <div class="log-box" id="logBox"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8080/api/v1';
+        let accessToken = localStorage.getItem('accessToken') || null;
+        let userId = localStorage.getItem('userId') || null;
+        let otpExpiredTime = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkBackendConnection();
+            if (accessToken) {
+                addLog('ℹ️ Existing token found. You can request OTP.', 'info');
+            }
+        });
+
+        async function checkBackendConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const connStatus = document.getElementById('connStatus');
+                if (response.ok) {
+                    connStatus.textContent = '✅ Connected';
+                    connStatus.style.color = '#388e3c';
+                } else {
+                    connStatus.textContent = '⚠️ Not authenticated';
+                    connStatus.style.color = '#f57c00';
+                }
+            } catch (error) {
+                document.getElementById('connStatus').textContent = '❌ No connection';
+                document.getElementById('connStatus').style.color = '#d32f2f';
+                addLog(`Connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function registerAccount() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const btn = event.target.closest('button');
+            const statusDiv = document.getElementById('registerStatus');
+
+            if (!email || !password) {
+                showStatus(statusDiv, 'Email and password required', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            const originalText = btn.textContent;
+            btn.innerHTML = '<span class="spinner"></span>Registering...';
+            addLog(`Registering account: ${email}`, 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: email.split('@')[0],
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showStatus(statusDiv, `❌ Registration failed: ${data.detail || data.message}`, 'error');
+                    addLog(`Registration error: ${JSON.stringify(data)}`, 'error');
+                } else {
+                    accessToken = data.tokens.access_token;
+                    userId = data.user.id;
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('userId', userId);
+                    showStatus(statusDiv, `✅ Account created! Email: ${data.user.email}`, 'success');
+                    addLog(`✅ Registration successful. User ID: ${userId}`, 'success');
+                }
+            } catch (error) {
+                showStatus(statusDiv, `❌ Error: ${error.message}`, 'error');
+                addLog(`Registration exception: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        async function loginAccount() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const btn = event.target.closest('button');
+            const statusDiv = document.getElementById('registerStatus');
+
+            if (!email || !password) {
+                showStatus(statusDiv, 'Email and password required', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            const originalText = btn.textContent;
+            btn.innerHTML = '<span class="spinner"></span>Logging in...';
+            addLog(`Logging in: ${email}`, 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showStatus(statusDiv, `❌ Login failed: ${data.detail || data.message}`, 'error');
+                    addLog(`Login error: ${JSON.stringify(data)}`, 'error');
+                } else {
+                    accessToken = data.tokens.access_token;
+                    userId = data.user.id;
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('userId', userId);
+                    showStatus(statusDiv, `✅ Logged in! Email: ${data.user.email}`, 'success');
+                    addLog(`✅ Login successful. User ID: ${userId}`, 'success');
+                }
+            } catch (error) {
+                showStatus(statusDiv, `❌ Error: ${error.message}`, 'error');
+                addLog(`Login exception: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        async function sendOtp() {
+            if (!accessToken) {
+                showStatus(document.getElementById('otpStatus'), '❌ Please register/login first', 'error');
+                return;
+            }
+
+            const btn = event.target.closest('button');
+            const statusDiv = document.getElementById('otpStatus');
+            const timerDiv = document.getElementById('otpTimer');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Sending...';
+            addLog('Sending OTP request...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/email-verification/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errorMsg = data.detail || data.message || 'Failed to send OTP';
+                    showStatus(statusDiv, `❌ Error (${response.status}): ${errorMsg}`, 'error');
+                    addLog(`OTP send error: ${JSON.stringify(data)}`, 'error');
+                    if (response.status === 503) {
+                        addLog('⚠️ 503 Error: Check SMTP configuration in .env file', 'warning');
+                        addLog('Make sure SMTP_HOST=smtp.gmail.com (not email address)', 'warning');
+                    }
+                } else {
+                    otpExpiredTime = new Date(data.expires_at * 1000);
+                    showStatus(statusDiv, '✅ OTP sent! Check your email inbox within 10 minutes.', 'success');
+                    addLog('✅ OTP sent successfully', 'success');
+                    addLog(`📧 Check email for 6-digit code`, 'info');
+                    timerDiv.classList.remove('hidden');
+                    startCountdown();
+                }
+            } catch (error) {
+                showStatus(statusDiv, `❌ Error: ${error.message}`, 'error');
+                addLog(`OTP send exception: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Send OTP Code';
+            }
+        }
+
+        async function verifyOtp() {
+            if (!accessToken) {
+                showStatus(document.getElementById('verifyStatus'), '❌ Please login first', 'error');
+                return;
+            }
+
+            const email = document.getElementById('email').value.trim();
+            const code = document.getElementById('otpCode').value.trim();
+            const btn = event.target.closest('button');
+            const statusDiv = document.getElementById('verifyStatus');
+
+            if (!email || !code) {
+                showStatus(statusDiv, 'Email and OTP code required', 'error');
+                return;
+            }
+
+            if (code.length !== 6 || !/^\d+$/.test(code)) {
+                showStatus(statusDiv, 'OTP code must be 6 digits', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Verifying...';
+            addLog(`Verifying OTP: ${code}`, 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/email-verification/verify`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: code
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errorMsg = data.detail || data.message || 'Verification failed';
+                    showStatus(statusDiv, `❌ ${errorMsg}`, 'error');
+                    addLog(`Verification error: ${JSON.stringify(data)}`, 'error');
+                } else {
+                    showStatus(statusDiv, `✅ Email verified successfully! User is verified: ${data.is_verified}`, 'success');
+                    addLog('✅ Email verification complete!', 'success');
+                    document.getElementById('otpCode').value = '';
+                }
+            } catch (error) {
+                showStatus(statusDiv, `❌ Error: ${error.message}`, 'error');
+                addLog(`Verification exception: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Verify OTP';
+            }
+        }
+
+        function startCountdown() {
+            if (!otpExpiredTime) return;
+
+            const interval = setInterval(() => {
+                const now = new Date();
+                const diff = otpExpiredTime - now;
+
+                if (diff <= 0) {
+                    clearInterval(interval);
+                    document.getElementById('otpTimer').classList.add('hidden');
+                    showStatus(document.getElementById('otpStatus'), '⚠️ OTP code has expired', 'warning');
+                    return;
+                }
+
+                const mins = Math.floor(diff / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+                document.getElementById('countdown').textContent = `${mins}:${String(secs).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function showStatus(element, message, type) {
+            element.className = `status-box status-${type}`;
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        function addLog(message, type = 'info') {
+            const logBox = document.getElementById('logBox');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">${time}</span> <span class="log-${type}">${message}</span>`;
+            logBox.insertBefore(entry, logBox.firstChild);
+
+            // Keep only last 50 logs
+            while (logBox.children.length > 50) {
+                logBox.removeChild(logBox.lastChild);
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('logBox').innerHTML = '';
+            addLog('Logs cleared', 'info');
+        }
+
+        function copyLogs() {
+            const logBox = document.getElementById('logBox');
+            const text = Array.from(logBox.querySelectorAll('.log-entry'))
+                .map(e => e.textContent)
+                .join('\n');
+            navigator.clipboard.writeText(text);
+            addLog('✅ Logs copied to clipboard', 'success');
+        }
+    </script>
+</body>
+</html>
